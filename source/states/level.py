@@ -19,10 +19,13 @@ class Firework:
         self.animate_timer = 0
         self.done = False
         
-        sheet = setup.GFX[c.ITEM_SHEET]
-        frame_rects = [(210, 500, 32, 32), (210, 540, 32, 32)]
-        for rect in frame_rects:
-            img = tools.get_image(sheet, *rect, c.BLACK, 3)
+        import os
+        gfx_dir = os.path.join('resources', 'graphics')
+        for name in ['1.png', '2.png', '3.png']:
+            path = os.path.join(gfx_dir, name)
+            img = pg.image.load(path).convert()
+            img.set_colorkey(c.BLACK)
+            img = pg.transform.scale(img, (img.get_width() * 3, img.get_height() * 3))
             self.frames.append(img)
         
         self.image = self.frames[0]
@@ -63,6 +66,7 @@ class Level(tools.State):
         self.study_subjects = ['行测', '申论', '公基', '职测']
         self.study_font = _get_chinese_font(14)
         self.flagtext_arrived = False
+        self._assign_enemy_labels()
         
         self.moving_score_list = []
         self.overhead_info = info.Info(self.game_info, c.LEVEL)
@@ -236,6 +240,21 @@ class Level(tools.State):
         self.ground_step_pipe_group = pg.sprite.Group(self.ground_group,
                         self.pipe_group, self.step_group, self.slider_group)
         self.player_group = pg.sprite.Group(self.player)
+    
+    def _assign_enemy_labels(self):
+        all_enemies = []
+        for group in self.enemy_group_list:
+            for enemy in group:
+                all_enemies.append(enemy)
+        if not all_enemies:
+            return
+        all_enemies.sort(key=lambda e: e.rect.x)
+        for i, enemy in enumerate(all_enemies):
+            eid = id(enemy)
+            if i == len(all_enemies) - 1:
+                self.enemy_study_labels[eid] = '面试'
+            else:
+                self.enemy_study_labels[eid] = self.study_subjects[i % len(self.study_subjects)]
         
     def update(self, surface, keys, current_time):
         self.game_info[c.CURRENT_TIME] = self.current_time = current_time
@@ -688,21 +707,16 @@ class Level(tools.State):
         self.enemy_group.draw(self.level)
         # Draw study labels above enemies when player has college buff
         if self.player.fire:
-            enemy_list = list(self.enemy_group)
-            for i, enemy in enumerate(enemy_list):
+            for enemy in self.enemy_group:
                 eid = id(enemy)
-                if eid not in self.enemy_study_labels:
-                    if i == len(enemy_list) - 1:
-                        self.enemy_study_labels[eid] = '面试'
-                    else:
-                        self.enemy_study_labels[eid] = self.study_subjects[i % len(self.study_subjects)]
-                label = self.enemy_study_labels[eid]
-                text = self.study_font.render(label, False, (255, 255, 255))
-                text_rect = text.get_rect(centerx=enemy.rect.centerx, bottom=enemy.rect.top - 4)
-                bg_rect = text_rect.inflate(6, 4)
-                pg.draw.rect(self.level, (0, 0, 0), bg_rect)
-                pg.draw.rect(self.level, (255, 215, 0), bg_rect, 1)
-                self.level.blit(text, text_rect)
+                if eid in self.enemy_study_labels:
+                    label = self.enemy_study_labels[eid]
+                    text = self.study_font.render(label, False, (255, 255, 255))
+                    text_rect = text.get_rect(centerx=enemy.rect.centerx, bottom=enemy.rect.top - 4)
+                    bg_rect = text_rect.inflate(6, 4)
+                    pg.draw.rect(self.level, (0, 0, 0), bg_rect)
+                    pg.draw.rect(self.level, (255, 215, 0), bg_rect, 1)
+                    self.level.blit(text, text_rect)
         self.player_group.draw(self.level)
         self.static_coin_group.draw(self.level)
         self.slider_group.draw(self.level)
