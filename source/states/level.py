@@ -15,25 +15,26 @@ class FireworkParticle:
         self.x = x
         self.y = y
         angle = random.uniform(0, 2 * 3.14159)
-        speed = random.uniform(1, 4)
+        speed = random.uniform(2, 6)
         self.vx = speed * __import__('math').cos(angle)
-        self.vy = speed * __import__('math').sin(angle) - 2
+        self.vy = speed * __import__('math').sin(angle) - 3
         self.color = color
-        self.life = random.randint(30, 60)
+        self.life = random.randint(40, 80)
         self.max_life = self.life
-        self.size = random.randint(2, 4)
+        self.size = random.randint(3, 6)
     
     def update(self):
         self.x += self.vx
         self.y += self.vy
-        self.vy += 0.05
+        self.vy += 0.06
         self.life -= 1
         return self.life > 0
     
     def draw(self, surface):
-        alpha = int(255 * (self.life / self.max_life))
-        if alpha > 0:
+        if self.life > 0:
             pg.draw.circle(surface, self.color, (int(self.x), int(self.y)), self.size)
+            if self.size > 3:
+                pg.draw.circle(surface, (255, 255, 255), (int(self.x), int(self.y)), self.size // 2)
 
 
 class Firework:
@@ -42,17 +43,17 @@ class Firework:
         self.y = y
         self.particles = []
         self.exploded = False
-        self.rise_speed = -6
+        self.rise_speed = -8
         self.current_y = y
-        colors = [(255, 100, 100), (100, 255, 100), (100, 100, 255),
-                  (255, 255, 100), (255, 100, 255), (100, 255, 255),
-                  (255, 200, 100), (200, 100, 255)]
+        colors = [(255, 80, 80), (80, 255, 80), (80, 80, 255),
+                  (255, 255, 80), (255, 80, 255), (80, 255, 255),
+                  (255, 180, 80), (180, 80, 255)]
         self.color = random.choice(colors)
     
     def update(self):
         if not self.exploded:
             self.current_y += self.rise_speed
-            self.rise_speed += 0.1
+            self.rise_speed += 0.15
             if self.rise_speed >= 0:
                 self.explode()
         else:
@@ -61,12 +62,12 @@ class Firework:
     
     def explode(self):
         self.exploded = True
-        for _ in range(30):
+        for _ in range(40):
             self.particles.append(FireworkParticle(self.x, self.current_y, self.color))
     
     def draw(self, surface):
         if not self.exploded:
-            pg.draw.circle(surface, self.color, (int(self.x), int(self.current_y)), 3)
+            pg.draw.circle(surface, self.color, (int(self.x), int(self.current_y)), 5)
         for p in self.particles:
             p.draw(surface)
 
@@ -288,10 +289,10 @@ class Level(tools.State):
                         self.fireworks_timer = self.current_time
                         break
             else:
-                if self.current_time - self.fireworks_timer > 500:
-                    if len(self.fireworks_list) < 5:
-                        fx = self.flag.rect.centerx + random.randint(-200, 200)
-                        fy = random.randint(80, 200)
+                if self.current_time - self.fireworks_timer > 600:
+                    if len(self.fireworks_list) < 4:
+                        fx = self.flag.rect.centerx + random.randint(-150, 150)
+                        fy = random.randint(150, 280)
                         self.fireworks_list.append(Firework(fx, fy))
                         self.sound_manager.play('fireworks', 0.3)
                     self.fireworks_timer = self.current_time
@@ -355,9 +356,9 @@ class Level(tools.State):
                         castle_flag_sprite = s
                         break
                 if castle_flag_sprite:
-                    flag_text = stuff.FlagText(castle_flag_sprite.rect.centerx, castle_flag_sprite.rect.top - 5)
+                    flag_text = stuff.FlagText(castle_flag_sprite.rect.centerx, castle_flag_sprite.rect.top - 30)
                 else:
-                    flag_text = stuff.FlagText(8745, 305)
+                    flag_text = stuff.FlagText(8745, 275)
                 self.flagpole_group.add(flag_text)
                 self.flagtext_arrived = False
             elif (checkpoint.type == c.CHECKPOINT_TYPE_MUSHROOM and
