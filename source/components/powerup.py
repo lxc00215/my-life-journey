@@ -61,10 +61,20 @@ class Powerup(stuff.Stuff):
 
 class Mushroom(Powerup):
     def __init__(self, x, y):
-        Powerup.__init__(self, x, y, setup.GFX[c.ITEM_SHEET],
-                [(0, 0, 16, 16)], c.SIZE_MULTIPLIER)
+        from .pixel_text import create_pixel_text_with_border
+        dummy = pg.Surface((16, 16))
+        Powerup.__init__(self, x, y, dummy, [(0, 0, 16, 16)], c.SIZE_MULTIPLIER)
         self.type = c.TYPE_MUSHROOM
         self.speed = 2
+        # Replace sprite with pixel text "高中毕业"
+        self.frames = [create_pixel_text_with_border(
+            'HIGH SCHOOL', font_size=7,
+            text_color=(255, 255, 255), bg_color=(200, 50, 50),
+            border_color=(255, 215, 0), scale=3, padding=1)]
+        self.image = self.frames[0]
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.bottom = y
 
     def update(self, game_info, level):
         if self.state == c.REVEAL:
@@ -92,11 +102,29 @@ class LifeMushroom(Mushroom):
 
 class FireFlower(Powerup):
     def __init__(self, x, y):
+        from .pixel_text import create_pixel_text_with_border
+        dummy = pg.Surface((16, 16))
         frame_rect_list = [(0, 32, 16, 16), (16, 32, 16, 16),
                         (32, 32, 16, 16), (48, 32, 16, 16)]
-        Powerup.__init__(self, x, y, setup.GFX[c.ITEM_SHEET],
+        Powerup.__init__(self, x, y, dummy,
                     frame_rect_list, c.SIZE_MULTIPLIER)
         self.type = c.TYPE_FIREFLOWER
+        # Replace sprites with pixel text "COLLEGE" with color cycling
+        colors = [
+            ((255, 100, 100), (180, 40, 40)),
+            ((100, 255, 100), (40, 140, 40)),
+            ((255, 255, 100), (180, 140, 40)),
+            ((255, 180, 100), (180, 80, 40)),
+        ]
+        self.frames = [create_pixel_text_with_border(
+            'COLLEGE', font_size=7,
+            text_color=colors[i][0], bg_color=colors[i][1],
+            border_color=(255, 215, 0), scale=3, padding=1)
+            for i in range(4)]
+        self.image = self.frames[0]
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.bottom = y
 
     def update(self, game_info, *args):
         self.current_time = game_info[c.CURRENT_TIME]

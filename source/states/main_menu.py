@@ -80,17 +80,17 @@ class Menu(tools.State):
     def update_cursor(self, keys):
         if self.cursor.state == c.PLAYER1:
             self.cursor.rect.y = 358
-            if keys[pg.K_DOWN]:
+            if keys[pg.K_s]:
                 self.cursor.state = c.PLAYER2
                 self.player_index = 1
                 self.game_info[c.PLAYER_NAME] = c.PLAYER_LUIGI
         elif self.cursor.state == c.PLAYER2:
             self.cursor.rect.y = 403
-            if keys[pg.K_UP]:
+            if keys[pg.K_w]:
                 self.cursor.state = c.PLAYER1
                 self.player_index = 0
                 self.game_info[c.PLAYER_NAME] = c.PLAYER_MARIO
-        if keys[pg.K_RETURN]:
+        if keys[pg.K_j] or keys[pg.K_RETURN]:
             self.reset_game_info()
             self.done = True
     

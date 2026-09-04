@@ -223,4 +223,40 @@ class Slider(Stuff):
             elif self.rect.left > self.range_end:
                 self.rect.left = self.range_end
                 self.x_vel = -1
+
+
+class FlagText(pg.sprite.Sprite):
+    """Displays '事业编上岸' text when player reaches the flagpole"""
+    def __init__(self, x, y):
+        pg.sprite.Sprite.__init__(self)
+        try:
+            font = pg.font.SysFont('consolas', 8)
+        except:
+            font = pg.font.Font(None, 8)
+        
+        text = 'CAREER'
+        text_color = (255, 215, 0)
+        bg_color = (0, 100, 0)
+        border_color = (255, 255, 255)
+        scale = 3
+        padding = 1
+        
+        small_surface = font.render(text, False, text_color, bg_color)
+        small_rect = small_surface.get_rect()
+        
+        total_w = small_rect.width + padding * 2
+        total_h = small_rect.height + padding * 2
+        
+        bg_surface = pg.Surface((total_w, total_h))
+        bg_surface.fill(border_color)
+        inner_rect = pg.Rect(padding - 1, padding - 1, 
+                             small_rect.width + 1, small_rect.height + 1)
+        pg.draw.rect(bg_surface, bg_color, inner_rect)
+        bg_surface.blit(small_surface, (padding, padding))
+        
+        self.image = pg.transform.scale(bg_surface,
+            (total_w * scale, total_h * scale))
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.bottom = y
     

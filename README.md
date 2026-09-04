@@ -14,9 +14,9 @@ A improved supermario game based on https://github.com/justinmeister/Mario-Level
 $ python main.py
 
 # How to Play
-* use LEFT/RIGHT/DOWN key to control player
-* use key 'a' to jump
-* use key 's' to shoot firewall or run
+* use W/A/S/D key to control player (W not used, A=left, S=down, D=right)
+* use key 'k' to jump
+* use key 'j' to shoot firewall or run
 
 # Demo
 ![level_1_1](https://raw.githubusercontent.com/marblexu/PythonSuperMario/master/resources/demo/level_1_1.png)

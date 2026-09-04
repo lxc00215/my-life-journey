@@ -251,6 +251,9 @@ class Level(tools.State):
                     self.player.rect.bottom = self.flag.rect.y
                 self.flag.state = c.SLIDE_DOWN
                 self.update_flag_score()
+                # Add "事业编上岸" text above the flagpole
+                flag_text = stuff.FlagText(self.flag.rect.centerx, self.flag.rect.top - 10)
+                self.flagpole_group.add(flag_text)
             elif checkpoint.type == c.CHECKPOINT_TYPE_CASTLE:
                 self.player.state = c.IN_CASTLE
                 self.player.x_vel = 0
