@@ -255,5 +255,15 @@ class FlagText(pg.sprite.Sprite):
             (total_w * scale, total_h * scale))
         self.rect = self.image.get_rect()
         self.rect.centerx = x
-        self.rect.bottom = y
+        self.target_y = y - self.rect.height
+        self.rect.top = y + 40
+        self.y_vel = -2
+        self.arrived = False
+    
+    def update(self):
+        if not self.arrived:
+            self.rect.y += self.y_vel
+            if self.rect.top <= self.target_y:
+                self.rect.top = self.target_y
+                self.arrived = True
     

@@ -88,6 +88,7 @@ class Level(tools.State):
         self.enemy_study_labels = {}
         self.study_subjects = ['行测', '申论', '公基', '职测']
         self.study_font = _get_chinese_font(14)
+        self.flagtext_arrived = False
         
         self.moving_score_list = []
         self.overhead_info = info.Info(self.game_info, c.LEVEL)
@@ -279,16 +280,23 @@ class Level(tools.State):
         elif self.player.state == c.IN_CASTLE:
             self.player.update(keys, self.game_info, None)
             self.flagpole_group.update()
-            # Launch fireworks periodically
-            if self.current_time - self.fireworks_timer > 400:
-                if len(self.fireworks_list) < 5:
-                    fx = self.flag.rect.centerx + random.randint(-200, 200)
-                    fy = random.randint(100, 250)
-                    self.fireworks_list.append(Firework(fx, fy))
-                    self.sound_manager.play('fireworks', 0.3)
-                self.fireworks_timer = self.current_time
+            # Check if flagtext has arrived, then start fireworks
+            if not self.flagtext_arrived:
+                for s in self.flagpole_group:
+                    if isinstance(s, stuff.FlagText) and s.arrived:
+                        self.flagtext_arrived = True
+                        self.fireworks_timer = self.current_time
+                        break
+            else:
+                if self.current_time - self.fireworks_timer > 500:
+                    if len(self.fireworks_list) < 5:
+                        fx = self.flag.rect.centerx + random.randint(-200, 200)
+                        fy = random.randint(80, 200)
+                        self.fireworks_list.append(Firework(fx, fy))
+                        self.sound_manager.play('fireworks', 0.3)
+                    self.fireworks_timer = self.current_time
             self.fireworks_list = [fw for fw in self.fireworks_list if fw.update()]
-            if self.current_time - self.castle_timer > 4000:
+            if self.current_time - self.castle_timer > 5000:
                 self.update_game_info()
                 self.done = True
         elif self.in_frozen_state():
@@ -341,8 +349,17 @@ class Level(tools.State):
                 self.flagpole_group.add(stuff.CastleFlag(8745, 322))
                 self.sound_manager.play_music('stage_clear', loops=0)
                 self.sound_manager.play('level_complete')
-                flag_text = stuff.FlagText(8745, 310)
+                castle_flag_sprite = None
+                for s in self.flagpole_group:
+                    if isinstance(s, stuff.CastleFlag):
+                        castle_flag_sprite = s
+                        break
+                if castle_flag_sprite:
+                    flag_text = stuff.FlagText(castle_flag_sprite.rect.centerx, castle_flag_sprite.rect.top - 5)
+                else:
+                    flag_text = stuff.FlagText(8745, 305)
                 self.flagpole_group.add(flag_text)
+                self.flagtext_arrived = False
             elif (checkpoint.type == c.CHECKPOINT_TYPE_MUSHROOM and
                     self.player.y_vel < 0):
                 mushroom_box = box.Box(checkpoint.rect.x, checkpoint.rect.bottom - 40,
