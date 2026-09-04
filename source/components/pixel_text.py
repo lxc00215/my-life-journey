@@ -71,7 +71,7 @@ class SoundManager:
                 'level_complete': 'stage_clear',
                 'death': 'death',
                 'fireball': 'fireball',
-                'fireworks': 'coin',
+                'fireworks': 'brick_smash',
                 'stomp': 'stomp',
                 'coin': 'coin',
                 'kick': 'kick',

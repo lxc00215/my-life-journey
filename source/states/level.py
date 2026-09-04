@@ -10,65 +10,42 @@ from ..components import info, stuff, player, brick, box, enemy, powerup, coin
 from ..components.pixel_text import SoundManager, _get_chinese_font
 
 
-class FireworkParticle:
-    def __init__(self, x, y, color):
-        self.x = x
-        self.y = y
-        angle = random.uniform(0, 2 * 3.14159)
-        speed = random.uniform(3, 8)
-        self.vx = speed * __import__('math').cos(angle)
-        self.vy = speed * __import__('math').sin(angle) - 4
-        self.color = color
-        self.life = random.randint(50, 90)
-        self.max_life = self.life
-        self.size = random.randint(5, 10)
-    
-    def update(self):
-        self.x += self.vx
-        self.y += self.vy
-        self.vy += 0.08
-        self.life -= 1
-        return self.life > 0
-    
-    def draw(self, surface):
-        if self.life > 0:
-            pg.draw.circle(surface, self.color, (int(self.x), int(self.y)), self.size)
-            pg.draw.circle(surface, (255, 255, 255), (int(self.x), int(self.y)), max(1, self.size // 3))
-
-
 class Firework:
     def __init__(self, screen_x, screen_y):
         self.screen_x = screen_x
         self.screen_y = screen_y
-        self.particles = []
-        self.exploded = False
-        self.rise_speed = -10
-        self.current_y = screen_y + 200
-        colors = [(255, 80, 80), (80, 255, 80), (80, 80, 255),
-                  (255, 255, 80), (255, 80, 255), (80, 255, 255),
-                  (255, 180, 80), (180, 80, 255)]
-        self.color = random.choice(colors)
+        self.frames = []
+        self.frame_index = 0
+        self.animate_timer = 0
+        self.done = False
+        
+        sheet = setup.GFX[c.ITEM_SHEET]
+        frame_rects = [(64, 64, 16, 16), (80, 64, 16, 16),
+                       (96, 64, 16, 16), (112, 64, 16, 16),
+                       (64, 80, 16, 16), (80, 80, 16, 16),
+                       (96, 80, 16, 16), (112, 80, 16, 16)]
+        for rect in frame_rects:
+            img = tools.get_image(sheet, *rect, c.BLACK, 3)
+            self.frames.append(img)
+        
+        self.image = self.frames[0]
+        self.rect = self.image.get_rect(center=(screen_x, screen_y))
     
     def update(self):
-        if not self.exploded:
-            self.current_y += self.rise_speed
-            self.rise_speed += 0.2
-            if self.rise_speed >= 0:
-                self.explode()
-        else:
-            self.particles = [p for p in self.particles if p.update()]
-        return self.exploded and len(self.particles) > 0
-    
-    def explode(self):
-        self.exploded = True
-        for _ in range(50):
-            self.particles.append(FireworkParticle(self.screen_x, self.current_y, self.color))
+        if self.done:
+            return False
+        current_time = pg.time.get_ticks()
+        if current_time - self.animate_timer > 100:
+            self.frame_index += 1
+            if self.frame_index >= len(self.frames):
+                self.done = True
+                return False
+            self.image = self.frames[self.frame_index]
+            self.animate_timer = current_time
+        return True
     
     def draw(self, surface):
-        if not self.exploded:
-            pg.draw.circle(surface, self.color, (int(self.screen_x), int(self.current_y)), 8)
-        for p in self.particles:
-            p.draw(surface)
+        surface.blit(self.image, self.rect)
 
 
 class Level(tools.State):
