@@ -420,7 +420,7 @@ class Level(tools.State):
                 self.player.invincible = True
             elif powerup.type == c.TYPE_LIFEMUSHROOM:
                 self.update_score(500, powerup, 0)
-                self.sound_manager.play('powerup')
+                self.sound_manager.play('one_up')
                 self.game_info[c.LIVES] += 1
             if powerup.type != c.TYPE_FIREBALL:
                 powerup.kill()
@@ -455,6 +455,7 @@ class Level(tools.State):
                     self.death_timer = self.current_time
             else:
                 self.update_score(400, shell, 0)
+                self.sound_manager.play('kick')
                 if self.player.rect.x < shell.rect.x:
                     self.player.rect.left = shell.rect.x 
                     shell.direction = c.RIGHT
@@ -467,6 +468,7 @@ class Level(tools.State):
                 shell.state = c.SHELL_SLIDE
         elif coin:
             self.update_score(100, coin, 1)
+            self.sound_manager.play('coin')
             coin.kill()
 
     def adjust_player_for_x_collisions(self, collider):
@@ -552,16 +554,23 @@ class Level(tools.State):
                 if sprite.state == c.RESTING:
                     if self.player.big and sprite.type == c.TYPE_NONE:
                         sprite.change_to_piece(self.dying_group)
+                        self.sound_manager.play('brick_smash')
                     else:
                         if sprite.type == c.TYPE_COIN:
                             self.update_score(200, sprite, 1)
+                            self.sound_manager.play('coin')
                         sprite.start_bump(self.moving_score_list)
+                        self.sound_manager.play('bump')
             elif sprite.name == c.MAP_BOX:
                 self.check_if_enemy_on_brick_box(sprite)
                 if sprite.state == c.RESTING:
                     if sprite.type == c.TYPE_COIN:
                         self.update_score(200, sprite, 1)
+                        self.sound_manager.play('coin')
+                    elif sprite.type in (c.TYPE_MUSHROOM, c.TYPE_FIREFLOWER, c.TYPE_LIFEMUSHROOM):
+                        self.sound_manager.play('powerup_appears')
                     sprite.start_bump(self.moving_score_list)
+                    self.sound_manager.play('bump')
             elif (sprite.name == c.MAP_PIPE and
                 sprite.type == c.PIPE_TYPE_HORIZONTAL):
                 return
@@ -633,6 +642,7 @@ class Level(tools.State):
                 self.player.rect.x < pipe.rect.centerx and
                 self.player.rect.right > pipe.rect.centerx):
                 self.player.state = c.DOWN_TO_PIPE
+                self.sound_manager.play('pipe')
         self.player.rect.y -= 1
         
     def update_game_info(self):
