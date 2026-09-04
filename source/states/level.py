@@ -20,10 +20,7 @@ class Firework:
         self.done = False
         
         sheet = setup.GFX[c.ITEM_SHEET]
-        frame_rects = [(64, 64, 16, 16), (80, 64, 16, 16),
-                       (96, 64, 16, 16), (112, 64, 16, 16),
-                       (64, 80, 16, 16), (80, 80, 16, 16),
-                       (96, 80, 16, 16), (112, 80, 16, 16)]
+        frame_rects = [(210, 500, 32, 32), (210, 540, 32, 32)]
         for rect in frame_rects:
             img = tools.get_image(sheet, *rect, c.BLACK, 3)
             self.frames.append(img)
@@ -35,7 +32,7 @@ class Firework:
         if self.done:
             return False
         current_time = pg.time.get_ticks()
-        if current_time - self.animate_timer > 100:
+        if current_time - self.animate_timer > 150:
             self.frame_index += 1
             if self.frame_index >= len(self.frames):
                 self.done = True
@@ -63,7 +60,7 @@ class Level(tools.State):
         self.fireworks_list = []
         self.firework_sound_played = False
         self.enemy_study_labels = {}
-        self.study_subjects = ['行测', '申论', '公基', '职测', '面试']
+        self.study_subjects = ['行测', '申论', '公基', '职测']
         self.study_font = _get_chinese_font(14)
         self.flagtext_arrived = False
         
@@ -273,9 +270,6 @@ class Level(tools.State):
                         self.sound_manager.play('fireworks', 0.3)
                     self.fireworks_timer = self.current_time
             self.fireworks_list = [fw for fw in self.fireworks_list if fw.update()]
-            if self.current_time - self.castle_timer > 5000:
-                self.update_game_info()
-                self.done = True
         elif self.in_frozen_state():
             self.player.update(keys, self.game_info, None)
             self.check_checkpoints()
@@ -694,10 +688,14 @@ class Level(tools.State):
         self.enemy_group.draw(self.level)
         # Draw study labels above enemies when player has college buff
         if self.player.fire:
-            for enemy in self.enemy_group:
+            enemy_list = list(self.enemy_group)
+            for i, enemy in enumerate(enemy_list):
                 eid = id(enemy)
                 if eid not in self.enemy_study_labels:
-                    self.enemy_study_labels[eid] = random.choice(self.study_subjects)
+                    if i == len(enemy_list) - 1:
+                        self.enemy_study_labels[eid] = '面试'
+                    else:
+                        self.enemy_study_labels[eid] = self.study_subjects[i % len(self.study_subjects)]
                 label = self.enemy_study_labels[eid]
                 text = self.study_font.render(label, False, (255, 255, 255))
                 text_rect = text.get_rect(centerx=enemy.rect.centerx, bottom=enemy.rect.top - 4)
