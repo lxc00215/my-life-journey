@@ -7,7 +7,7 @@ import pygame as pg
 from .. import setup, tools
 from .. import constants as c
 from ..components import info, stuff, player, brick, box, enemy, powerup, coin
-from ..components.pixel_text import SoundManager
+from ..components.pixel_text import SoundManager, _get_chinese_font
 
 
 class FireworkParticle:
@@ -85,6 +85,9 @@ class Level(tools.State):
         self.fireworks_timer = 0
         self.fireworks_list = []
         self.firework_sound_played = False
+        self.enemy_study_labels = {}
+        self.study_subjects = ['行测', '申论', '公基', '职测']
+        self.study_font = _get_chinese_font(7)
         
         self.moving_score_list = []
         self.overhead_info = info.Info(self.game_info, c.LEVEL)
@@ -692,13 +695,24 @@ class Level(tools.State):
         self.flagpole_group.draw(self.level)
         self.shell_group.draw(self.level)
         self.enemy_group.draw(self.level)
+        # Draw study labels above enemies when player has college buff
+        if self.player.fire:
+            for enemy in self.enemy_group:
+                eid = id(enemy)
+                if eid not in self.enemy_study_labels:
+                    self.enemy_study_labels[eid] = random.choice(self.study_subjects)
+                label = self.enemy_study_labels[eid]
+                text = self.study_font.render(label, False, (255, 255, 255))
+                text_rect = text.get_rect(centerx=enemy.rect.centerx, bottom=enemy.rect.top - 2)
+                bg_rect = text_rect.inflate(4, 2)
+                pg.draw.rect(self.level, (0, 0, 0), bg_rect)
+                self.level.blit(text, text_rect)
         self.player_group.draw(self.level)
         self.static_coin_group.draw(self.level)
         self.slider_group.draw(self.level)
         self.pipe_group.draw(self.level)
         for score in self.moving_score_list:
             score.draw(self.level)
-        # Draw fireworks
         for fw in self.fireworks_list:
             fw.draw(self.level)
         if c.DEBUG:
