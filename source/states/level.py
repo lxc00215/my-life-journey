@@ -432,9 +432,11 @@ class Level(tools.State):
                 self.sound_manager.play('powerup')
                 self.player.invincible = True
             elif powerup.type == c.TYPE_LIFEMUSHROOM:
-                self.update_score(500, powerup, 0)
-                self.sound_manager.play('one_up')
-                self.game_info[c.LIVES] += 1
+                self.update_score(1000, powerup, 0)
+                self.sound_manager.play('powerup')
+                if not self.player.big:
+                    self.player.y_vel = -1
+                    self.player.state = c.SMALL_TO_BIG
             if powerup.type != c.TYPE_FIREBALL:
                 powerup.kill()
         elif enemy:
