@@ -11,6 +11,7 @@ class Player(pg.sprite.Sprite):
     def __init__(self, player_name):
         pg.sprite.Sprite.__init__(self)
         self.player_name = player_name
+        self.sound_manager = None
         self.load_data()
         self.setup_timer()
         self.setup_state()
@@ -205,6 +206,8 @@ class Player(pg.sprite.Sprite):
             if self.allow_jump:
                 self.state = c.JUMP
                 self.y_vel = self.jump_vel
+                if self.sound_manager:
+                    self.sound_manager.play('jump')
         
         if not keys[tools.keybinding['down']]:
             self.update_crouch_or_not()
@@ -260,6 +263,8 @@ class Player(pg.sprite.Sprite):
                     self.y_vel = self.jump_vel - .5
                 else:
                     self.y_vel = self.jump_vel
+                if self.sound_manager:
+                    self.sound_manager.play('jump')
                 
 
         if keys[tools.keybinding['left']]:
@@ -367,6 +372,8 @@ class Player(pg.sprite.Sprite):
                             self.rect.y, self.facing_right))
             self.last_fireball_time = self.current_time
             self.frame_index = 6
+            if self.sound_manager:
+                self.sound_manager.play('fireball')
 
     def flag_pole_sliding(self):
         self.state = c.FLAGPOLE
@@ -542,3 +549,5 @@ class Player(pg.sprite.Sprite):
         self.gravity = .5
         self.frame_index = 6
         self.state = c.DEATH_JUMP
+        if self.sound_manager:
+            self.sound_manager.play('death')

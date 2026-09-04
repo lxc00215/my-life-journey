@@ -2,10 +2,73 @@ __author__ = 'marble_xu'
 
 import os
 import json
+import random
 import pygame as pg
 from .. import setup, tools
 from .. import constants as c
 from ..components import info, stuff, player, brick, box, enemy, powerup, coin
+from ..components.pixel_text import SoundManager
+
+
+class FireworkParticle:
+    def __init__(self, x, y, color):
+        self.x = x
+        self.y = y
+        angle = random.uniform(0, 2 * 3.14159)
+        speed = random.uniform(1, 4)
+        self.vx = speed * __import__('math').cos(angle)
+        self.vy = speed * __import__('math').sin(angle) - 2
+        self.color = color
+        self.life = random.randint(30, 60)
+        self.max_life = self.life
+        self.size = random.randint(2, 4)
+    
+    def update(self):
+        self.x += self.vx
+        self.y += self.vy
+        self.vy += 0.05
+        self.life -= 1
+        return self.life > 0
+    
+    def draw(self, surface):
+        alpha = int(255 * (self.life / self.max_life))
+        if alpha > 0:
+            pg.draw.circle(surface, self.color, (int(self.x), int(self.y)), self.size)
+
+
+class Firework:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.particles = []
+        self.exploded = False
+        self.rise_speed = -6
+        self.current_y = y
+        colors = [(255, 100, 100), (100, 255, 100), (100, 100, 255),
+                  (255, 255, 100), (255, 100, 255), (100, 255, 255),
+                  (255, 200, 100), (200, 100, 255)]
+        self.color = random.choice(colors)
+    
+    def update(self):
+        if not self.exploded:
+            self.current_y += self.rise_speed
+            self.rise_speed += 0.1
+            if self.rise_speed >= 0:
+                self.explode()
+        else:
+            self.particles = [p for p in self.particles if p.update()]
+        return self.exploded and len(self.particles) > 0
+    
+    def explode(self):
+        self.exploded = True
+        for _ in range(30):
+            self.particles.append(FireworkParticle(self.x, self.current_y, self.color))
+    
+    def draw(self, surface):
+        if not self.exploded:
+            pg.draw.circle(surface, self.color, (int(self.x), int(self.current_y)), 3)
+        for p in self.particles:
+            p.draw(surface)
 
 
 class Level(tools.State):
@@ -19,9 +82,13 @@ class Level(tools.State):
         self.game_info[c.CURRENT_TIME] = current_time
         self.death_timer = 0
         self.castle_timer = 0
+        self.fireworks_timer = 0
+        self.fireworks_list = []
+        self.firework_sound_played = False
         
         self.moving_score_list = []
         self.overhead_info = info.Info(self.game_info, c.LEVEL)
+        self.sound_manager = SoundManager()
         self.load_map()
         self.setup_background()
         self.setup_maps()
@@ -136,6 +203,7 @@ class Level(tools.State):
             self.player = player.Player(self.game_info[c.PLAYER_NAME])
         else:
             self.player.restart()
+        self.player.sound_manager = self.sound_manager
         self.player.rect.x = self.viewport.x + self.player_x
         self.player.rect.bottom = self.player_y
         if c.DEBUG:
@@ -207,7 +275,16 @@ class Level(tools.State):
         elif self.player.state == c.IN_CASTLE:
             self.player.update(keys, self.game_info, None)
             self.flagpole_group.update()
-            if self.current_time - self.castle_timer > 2000:
+            # Launch fireworks periodically
+            if self.current_time - self.fireworks_timer > 400:
+                if len(self.fireworks_list) < 5:
+                    fx = self.flag.rect.centerx + random.randint(-200, 200)
+                    fy = random.randint(100, 250)
+                    self.fireworks_list.append(Firework(fx, fy))
+                    self.sound_manager.play('fireworks', 0.3)
+                self.fireworks_timer = self.current_time
+            self.fireworks_list = [fw for fw in self.fireworks_list if fw.update()]
+            if self.current_time - self.castle_timer > 4000:
                 self.update_game_info()
                 self.done = True
         elif self.in_frozen_state():
@@ -251,14 +328,15 @@ class Level(tools.State):
                     self.player.rect.bottom = self.flag.rect.y
                 self.flag.state = c.SLIDE_DOWN
                 self.update_flag_score()
-                # Add "事业编上岸" text above the flagpole
                 flag_text = stuff.FlagText(self.flag.rect.centerx, self.flag.rect.top - 10)
                 self.flagpole_group.add(flag_text)
+                self.sound_manager.play('flag')
             elif checkpoint.type == c.CHECKPOINT_TYPE_CASTLE:
                 self.player.state = c.IN_CASTLE
                 self.player.x_vel = 0
                 self.castle_timer = self.current_time
                 self.flagpole_group.add(stuff.CastleFlag(8745, 322))
+                self.sound_manager.play('level_complete')
             elif (checkpoint.type == c.CHECKPOINT_TYPE_MUSHROOM and
                     self.player.y_vel < 0):
                 mushroom_box = box.Box(checkpoint.rect.x, checkpoint.rect.bottom - 40,
@@ -325,20 +403,24 @@ class Level(tools.State):
         elif powerup:
             if powerup.type == c.TYPE_MUSHROOM:
                 self.update_score(1000, powerup, 0)
+                self.sound_manager.play('powerup')
                 if not self.player.big:
                     self.player.y_vel = -1
                     self.player.state = c.SMALL_TO_BIG
             elif powerup.type == c.TYPE_FIREFLOWER:
                 self.update_score(1000, powerup, 0)
+                self.sound_manager.play('powerup')
                 if not self.player.big:
                     self.player.state = c.SMALL_TO_BIG
                 elif self.player.big and not self.player.fire:
                     self.player.state = c.BIG_TO_FIRE
             elif powerup.type == c.TYPE_STAR:
                 self.update_score(1000, powerup, 0)
+                self.sound_manager.play('powerup')
                 self.player.invincible = True
             elif powerup.type == c.TYPE_LIFEMUSHROOM:
                 self.update_score(500, powerup, 0)
+                self.sound_manager.play('powerup')
                 self.game_info[c.LIVES] += 1
             if powerup.type != c.TYPE_FIREBALL:
                 powerup.kill()
@@ -429,6 +511,7 @@ class Level(tools.State):
                 pass
             elif self.player.y_vel > 0:
                 self.update_score(100, enemy, 0)
+                self.sound_manager.play('stomp')
                 enemy.state = c.JUMPED_ON
                 if enemy.name == c.GOOMBA:
                     self.move_to_dying_group(self.enemy_group, enemy)
@@ -605,6 +688,9 @@ class Level(tools.State):
         self.pipe_group.draw(self.level)
         for score in self.moving_score_list:
             score.draw(self.level)
+        # Draw fireworks
+        for fw in self.fireworks_list:
+            fw.draw(self.level)
         if c.DEBUG:
             self.ground_step_pipe_group.draw(self.level)
             self.checkpoint_group.draw(self.level)

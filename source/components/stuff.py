@@ -226,20 +226,17 @@ class Slider(Stuff):
 
 
 class FlagText(pg.sprite.Sprite):
-    """Displays '事业编上岸' text when player reaches the flagpole"""
     def __init__(self, x, y):
         pg.sprite.Sprite.__init__(self)
-        try:
-            font = pg.font.SysFont('consolas', 8)
-        except:
-            font = pg.font.Font(None, 8)
+        from .pixel_text import _get_chinese_font
+        font = _get_chinese_font(10)
         
-        text = 'CAREER'
+        text = '事业编上岸'
         text_color = (255, 215, 0)
         bg_color = (0, 100, 0)
         border_color = (255, 255, 255)
-        scale = 3
-        padding = 1
+        scale = 2
+        padding = 2
         
         small_surface = font.render(text, False, text_color, bg_color)
         small_rect = small_surface.get_rect()

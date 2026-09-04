@@ -66,11 +66,10 @@ class Mushroom(Powerup):
         Powerup.__init__(self, x, y, dummy, [(0, 0, 16, 16)], c.SIZE_MULTIPLIER)
         self.type = c.TYPE_MUSHROOM
         self.speed = 2
-        # Replace sprite with pixel text "高中毕业"
         self.frames = [create_pixel_text_with_border(
-            'HIGH SCHOOL', font_size=7,
+            '高中毕业', font_size=10,
             text_color=(255, 255, 255), bg_color=(200, 50, 50),
-            border_color=(255, 215, 0), scale=3, padding=1)]
+            border_color=(255, 215, 0), scale=2, padding=2)]
         self.image = self.frames[0]
         self.rect = self.image.get_rect()
         self.rect.centerx = x
@@ -109,17 +108,16 @@ class FireFlower(Powerup):
         Powerup.__init__(self, x, y, dummy,
                     frame_rect_list, c.SIZE_MULTIPLIER)
         self.type = c.TYPE_FIREFLOWER
-        # Replace sprites with pixel text "COLLEGE" with color cycling
         colors = [
-            ((255, 100, 100), (180, 40, 40)),
-            ((100, 255, 100), (40, 140, 40)),
-            ((255, 255, 100), (180, 140, 40)),
-            ((255, 180, 100), (180, 80, 40)),
+            ((255, 255, 255), (200, 50, 50)),
+            ((255, 255, 255), (50, 150, 50)),
+            ((255, 255, 255), (200, 150, 50)),
+            ((255, 255, 255), (50, 100, 200)),
         ]
         self.frames = [create_pixel_text_with_border(
-            'COLLEGE', font_size=7,
+            '大学毕业', font_size=10,
             text_color=colors[i][0], bg_color=colors[i][1],
-            border_color=(255, 215, 0), scale=3, padding=1)
+            border_color=(255, 215, 0), scale=2, padding=2)
             for i in range(4)]
         self.image = self.frames[0]
         self.rect = self.image.get_rect()
