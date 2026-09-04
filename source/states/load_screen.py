@@ -1,5 +1,6 @@
 __author__ = 'marble_xu'
 
+import pygame as pg
 from .. import setup, tools
 from .. import constants as c
 from ..components import info
@@ -25,6 +26,9 @@ class LoadScreen(tools.State):
         return c.LOAD_SCREEN
 
     def update(self, surface, keys, current_time):
+        if keys[pg.K_j] or keys[pg.K_RETURN] or keys[pg.K_k]:
+            self.done = True
+            return
         if (current_time - self.start_time) < self.time_list[0]:
             surface.fill(c.BLACK)
             self.overhead_info.update(self.game_info)

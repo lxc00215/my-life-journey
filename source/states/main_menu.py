@@ -77,6 +77,14 @@ class Menu(tools.State):
         surface.blit(self.cursor.image, self.cursor.rect)
         self.overhead_info.draw(surface)
 
+        # Draw "Press J to start" hint
+        if not hasattr(self, '_hint_font'):
+            self._hint_font = pg.font.SysFont('consolas', 14)
+        if int(self.current_time / 500) % 2 == 0:
+            hint = self._hint_font.render('Press J to Start', True, (255, 255, 255))
+            hint_rect = hint.get_rect(centerx=c.SCREEN_WIDTH // 2, top=500)
+            surface.blit(hint, hint_rect)
+
     def update_cursor(self, keys):
         if self.cursor.state == c.PLAYER1:
             self.cursor.rect.y = 358
