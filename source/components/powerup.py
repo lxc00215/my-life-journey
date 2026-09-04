@@ -67,7 +67,7 @@ class Mushroom(Powerup):
         self.type = c.TYPE_MUSHROOM
         self.speed = 2
         self.frames = [create_pixel_text_with_border(
-            '高中毕业', font_size=10,
+            '初中毕业', font_size=10,
             text_color=(255, 255, 255), bg_color=(200, 50, 50),
             border_color=(255, 215, 0), scale=2, padding=2)]
         self.image = self.frames[0]
@@ -94,10 +94,20 @@ class Mushroom(Powerup):
 
 class LifeMushroom(Mushroom):
     def __init__(self, x, y):
-        Powerup.__init__(self, x, y, setup.GFX[c.ITEM_SHEET],
-                [(16, 0, 16, 16)], c.SIZE_MULTIPLIER)
+        from .pixel_text import create_pixel_text_with_border
+        dummy = pg.Surface((16, 16))
+        Powerup.__init__(self, x, y, dummy,
+                [(0, 0, 16, 16)], c.SIZE_MULTIPLIER)
         self.type = c.TYPE_LIFEMUSHROOM
         self.speed = 2
+        self.frames = [create_pixel_text_with_border(
+            '高中毕业', font_size=10,
+            text_color=(255, 255, 255), bg_color=(50, 150, 50),
+            border_color=(255, 215, 0), scale=2, padding=2)]
+        self.image = self.frames[0]
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.bottom = y
 
 class FireFlower(Powerup):
     def __init__(self, x, y):
