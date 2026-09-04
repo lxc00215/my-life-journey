@@ -15,36 +15,35 @@ class FireworkParticle:
         self.x = x
         self.y = y
         angle = random.uniform(0, 2 * 3.14159)
-        speed = random.uniform(2, 6)
+        speed = random.uniform(3, 8)
         self.vx = speed * __import__('math').cos(angle)
-        self.vy = speed * __import__('math').sin(angle) - 3
+        self.vy = speed * __import__('math').sin(angle) - 4
         self.color = color
-        self.life = random.randint(40, 80)
+        self.life = random.randint(50, 90)
         self.max_life = self.life
-        self.size = random.randint(3, 6)
+        self.size = random.randint(5, 10)
     
     def update(self):
         self.x += self.vx
         self.y += self.vy
-        self.vy += 0.06
+        self.vy += 0.08
         self.life -= 1
         return self.life > 0
     
     def draw(self, surface):
         if self.life > 0:
             pg.draw.circle(surface, self.color, (int(self.x), int(self.y)), self.size)
-            if self.size > 3:
-                pg.draw.circle(surface, (255, 255, 255), (int(self.x), int(self.y)), self.size // 2)
+            pg.draw.circle(surface, (255, 255, 255), (int(self.x), int(self.y)), max(1, self.size // 3))
 
 
 class Firework:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    def __init__(self, screen_x, screen_y):
+        self.screen_x = screen_x
+        self.screen_y = screen_y
         self.particles = []
         self.exploded = False
-        self.rise_speed = -8
-        self.current_y = y
+        self.rise_speed = -10
+        self.current_y = screen_y + 200
         colors = [(255, 80, 80), (80, 255, 80), (80, 80, 255),
                   (255, 255, 80), (255, 80, 255), (80, 255, 255),
                   (255, 180, 80), (180, 80, 255)]
@@ -53,7 +52,7 @@ class Firework:
     def update(self):
         if not self.exploded:
             self.current_y += self.rise_speed
-            self.rise_speed += 0.15
+            self.rise_speed += 0.2
             if self.rise_speed >= 0:
                 self.explode()
         else:
@@ -62,12 +61,12 @@ class Firework:
     
     def explode(self):
         self.exploded = True
-        for _ in range(40):
-            self.particles.append(FireworkParticle(self.x, self.current_y, self.color))
+        for _ in range(50):
+            self.particles.append(FireworkParticle(self.screen_x, self.current_y, self.color))
     
     def draw(self, surface):
         if not self.exploded:
-            pg.draw.circle(surface, self.color, (int(self.x), int(self.current_y)), 5)
+            pg.draw.circle(surface, self.color, (int(self.screen_x), int(self.current_y)), 8)
         for p in self.particles:
             p.draw(surface)
 
@@ -87,7 +86,7 @@ class Level(tools.State):
         self.fireworks_list = []
         self.firework_sound_played = False
         self.enemy_study_labels = {}
-        self.study_subjects = ['行测', '申论', '公基', '职测']
+        self.study_subjects = ['行测', '申论', '公基', '职测', '面试']
         self.study_font = _get_chinese_font(14)
         self.flagtext_arrived = False
         
@@ -289,10 +288,10 @@ class Level(tools.State):
                         self.fireworks_timer = self.current_time
                         break
             else:
-                if self.current_time - self.fireworks_timer > 600:
-                    if len(self.fireworks_list) < 4:
-                        fx = self.flag.rect.centerx + random.randint(-150, 150)
-                        fy = random.randint(150, 280)
+                if self.current_time - self.fireworks_timer > 700:
+                    if len(self.fireworks_list) < 3:
+                        fx = random.randint(200, 600)
+                        fy = random.randint(50, 150)
                         self.fireworks_list.append(Firework(fx, fy))
                         self.sound_manager.play('fireworks', 0.3)
                     self.fireworks_timer = self.current_time
@@ -735,11 +734,11 @@ class Level(tools.State):
         self.pipe_group.draw(self.level)
         for score in self.moving_score_list:
             score.draw(self.level)
-        for fw in self.fireworks_list:
-            fw.draw(self.level)
         if c.DEBUG:
             self.ground_step_pipe_group.draw(self.level)
             self.checkpoint_group.draw(self.level)
 
         surface.blit(self.level, (0,0), self.viewport)
+        for fw in self.fireworks_list:
+            fw.draw(surface)
         self.overhead_info.draw(surface)
