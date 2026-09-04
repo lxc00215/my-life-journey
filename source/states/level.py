@@ -66,7 +66,6 @@ class Level(tools.State):
         self.study_subjects = ['行测', '申论', '公基', '职测']
         self.study_font = _get_chinese_font(14)
         self.flagtext_arrived = False
-        self._assign_enemy_labels()
         
         self.moving_score_list = []
         self.overhead_info = info.Info(self.game_info, c.LEVEL)
@@ -83,6 +82,7 @@ class Level(tools.State):
         self.setup_brick_and_box()
         self.setup_player()
         self.setup_enemies()
+        self._assign_enemy_labels()
         self.setup_checkpoints()
         self.setup_flagpole()
         self.setup_sprite_groups()
