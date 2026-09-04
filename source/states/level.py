@@ -87,11 +87,12 @@ class Level(tools.State):
         self.firework_sound_played = False
         self.enemy_study_labels = {}
         self.study_subjects = ['行测', '申论', '公基', '职测']
-        self.study_font = _get_chinese_font(7)
+        self.study_font = _get_chinese_font(14)
         
         self.moving_score_list = []
         self.overhead_info = info.Info(self.game_info, c.LEVEL)
         self.sound_manager = SoundManager()
+        self.sound_manager.play_music('main_theme')
         self.load_map()
         self.setup_background()
         self.setup_maps()
@@ -331,15 +332,17 @@ class Level(tools.State):
                     self.player.rect.bottom = self.flag.rect.y
                 self.flag.state = c.SLIDE_DOWN
                 self.update_flag_score()
-                flag_text = stuff.FlagText(self.flag.rect.centerx, self.flag.rect.top - 10)
-                self.flagpole_group.add(flag_text)
+                self.sound_manager.stop_music()
                 self.sound_manager.play('flag')
             elif checkpoint.type == c.CHECKPOINT_TYPE_CASTLE:
                 self.player.state = c.IN_CASTLE
                 self.player.x_vel = 0
                 self.castle_timer = self.current_time
                 self.flagpole_group.add(stuff.CastleFlag(8745, 322))
+                self.sound_manager.play_music('stage_clear', loops=0)
                 self.sound_manager.play('level_complete')
+                flag_text = stuff.FlagText(8745, 310)
+                self.flagpole_group.add(flag_text)
             elif (checkpoint.type == c.CHECKPOINT_TYPE_MUSHROOM and
                     self.player.y_vel < 0):
                 mushroom_box = box.Box(checkpoint.rect.x, checkpoint.rect.bottom - 40,
@@ -703,9 +706,10 @@ class Level(tools.State):
                     self.enemy_study_labels[eid] = random.choice(self.study_subjects)
                 label = self.enemy_study_labels[eid]
                 text = self.study_font.render(label, False, (255, 255, 255))
-                text_rect = text.get_rect(centerx=enemy.rect.centerx, bottom=enemy.rect.top - 2)
-                bg_rect = text_rect.inflate(4, 2)
+                text_rect = text.get_rect(centerx=enemy.rect.centerx, bottom=enemy.rect.top - 4)
+                bg_rect = text_rect.inflate(6, 4)
                 pg.draw.rect(self.level, (0, 0, 0), bg_rect)
+                pg.draw.rect(self.level, (255, 215, 0), bg_rect, 1)
                 self.level.blit(text, text_rect)
         self.player_group.draw(self.level)
         self.static_coin_group.draw(self.level)

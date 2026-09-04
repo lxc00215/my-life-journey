@@ -54,6 +54,7 @@ class SoundManager:
     def __init__(self):
         self.sounds = {}
         self.enabled = True
+        self.current_music = None
         self._init_sounds()
     
     def _init_sounds(self):
@@ -66,9 +67,9 @@ class SoundManager:
                 'jump': 'small_jump',
                 'powerup': 'powerup',
                 'powerup_appears': 'powerup_appears',
-                'flag': 'pipe',
-                'level_complete': 'main_theme_sped_up',
-                'death': 'pipe',
+                'flag': 'flagpole',
+                'level_complete': 'stage_clear',
+                'death': 'death',
                 'fireball': 'fireball',
                 'fireworks': 'coin',
                 'stomp': 'stomp',
@@ -78,7 +79,9 @@ class SoundManager:
                 'brick_smash': 'brick_smash',
                 'one_up': 'one_up',
                 'pipe': 'pipe',
-                'count_down': 'count_down',
+                'count_down': 'out_of_time',
+                'game_over': 'game_over',
+                'invincible': 'invincible',
             }
             for key, sfx_name in sfx_map.items():
                 if sfx_name in setup.SFX:
@@ -94,3 +97,22 @@ class SoundManager:
                 self.sounds[name].play()
             except:
                 pass
+    
+    def play_music(self, name, volume=0.4, loops=-1):
+        if self.enabled:
+            try:
+                from .. import setup
+                if name in setup.MUSIC:
+                    pg.mixer.music.load(setup.MUSIC[name])
+                    pg.mixer.music.set_volume(volume)
+                    pg.mixer.music.play(loops)
+                    self.current_music = name
+            except Exception as e:
+                print(f"Music play failed: {e}")
+    
+    def stop_music(self):
+        try:
+            pg.mixer.music.stop()
+            self.current_music = None
+        except:
+            pass
